@@ -1,0 +1,4 @@
+ydb
+yandexcloud
+Flask
+gunicorn

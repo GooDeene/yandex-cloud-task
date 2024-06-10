@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="utf-8">
+    <title>Гостевая книга</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+
+<body>
+<h1 class="title">Гостевая книга для всех желающих</h1>
+<main class="main">
+    <div class="cards" id="cards"></div>
+    <div class="addComment">
+        <form class="form" action="javascript:addComment()">
+            <div id="back_version"></div>
+            <label for="username">Ваш никнейм</label>
+            <input id="username" type="text" name="username"/><br><br>
+            <label for="comment">Комментарий</label>
+            <textarea rows="2" cols="25" id="comment" name="comment"></textarea><br><br>
+            <input id="submit" type="submit" value="Добавить">
+        </form>
+    </div>
+</main>
+</body>
+
+</html>
+
+<style>
+
+    .title {
+        text-align: center;
+        font-family: sans-serif, serif;
+    }
+
+    .main {
+        display: grid;
+        grid-template-columns: 3fr 1fr;
+        margin: 30px;
+    }
+
+    .cards {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 4.5rem;
+        text-align: center;
+    }
+
+    .form {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+
+    .card {
+        align-items: center;
+        min-width: 250px;
+        max-width: 250px;
+        min-height: 100px;
+        max-height: none;
+        margin: 2rem;
+        padding: 0.5rem;
+        border-radius: 5px;
+        transition: 0.3s;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3);
+        font-family: Montserrat, serif;
+        text-align: left;
+    }
+
+    .card:hover {
+        box-shadow: 0 12px 20px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    .card__name {
+        padding: 5px 0 5px 0;
+        font-size: 1.4em;
+        font-weight: bold;
+        margin-block-end: 0;
+        margin-block-start: 0;
+        overflow-wrap: break-word;
+        text-align: center;
+    }
+
+    .card__description {
+        margin-top: 0.5rem;
+        padding: 0.5rem 0.5rem 0.5rem 0;
+        border-top: 1px solid #aaa;
+    }
+
+    #username {
+        padding: 4px;
+        width: 250px;
+    }
+
+    label {
+        margin-bottom: 10px;
+    }
+
+    #comment {
+        height: 100px;
+        width: 250px;
+        resize: none;
+    }
+
+    #submit {
+        width: 150px;
+        padding: 8px;
+        font-weight: bold;
+        font-size: 16px;
+        border-radius: 15px;
+        border: solid 2px black;
+        background-color: darkseagreen;
+        cursor: pointer;
+    }
+
+    #submit:hover {
+        background-color: lightgreen;
+        border: solid 2px gray;
+    }
+
+    #submit:active {
+        opacity: .7;
+    }
+
+</style>
+
+<script>
+
+    function getAllComments() {
+        fetch(`/get_data`)
+            .then(response => response.json())
+            .then(data => {
+                const cards = document.getElementById("cards")
+                for (let comment of data) {
+                    cards.innerHTML += `
+                        <div class="card">
+                            <div class="card__id" style="display: none;">${comment.id}</div>
+                            <div class="card__name">${comment.username}</div>
+                            <div class="card__description">${comment.comment}</div>
+                        </div>
+                    `
+                }
+            })
+            .catch(error => console.log(error))
+    }
+
+    function getBackData() {
+        fetch(`/get_back_data`)
+            .then(response => response.json())
+            .then(data => {
+                const backVer = document.getElementById("back_version")
+                backVer.innerHTML = `<div>
+                                            <p>Версия backend: ${data.version}</p>
+                                            <p>Имя хоста реплики: ${data.hostname}</p>
+                                       </div>`
+
+            })
+            .catch(error => console.log(error))
+    }
+
+    getAllComments();
+    getBackData();
+
+    function addComment() {
+        const username = document.getElementById("username").value
+        const comment = document.getElementById("comment").value
+
+        if (!username || !comment) {
+            alert('Никнейм и комментарий не могут быть пустыми!')
+            return;
+        }
+
+        fetch(`/add_data`, {
+            method: 'post',
+            body: JSON.stringify({
+                username: username,
+                comment: comment
+            }),
+            headers: {
+                'content-type': 'application/json'
+            }
+        })
+            .then(() => location.reload())
+            .catch(error => console.log(error));
+    }
+
+    // function deleteComment(el) {
+    //     const id = el.parentElement.querySelector(".card__id").innerHTML
+    //
+    //     fetch(`/delete?taskId=${id}`, {
+    //         method: 'DELETE',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         }
+    //     })
+    //         .then(() => location.reload())
+    //         .catch(error => alert(error))
+    // }
+</script>
